@@ -14,8 +14,9 @@ export default function SettingsScreen() {
     try {
       const transactions = await getTransactionsByMonth(db, currentMonth);
       await exportToCSV(transactions, formatMonthDisplayName(currentMonth));
-    } catch (e: any) {
-      Alert.alert('Export Failed', e.message);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error';
+      Alert.alert('Export Failed', message);
     }
   };
 
@@ -23,8 +24,9 @@ export default function SettingsScreen() {
     try {
       const transactions = await getAllTransactions(db);
       await exportToCSV(transactions, 'All_Time');
-    } catch (e: any) {
-      Alert.alert('Export Failed', e.message);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error';
+      Alert.alert('Export Failed', message);
     }
   };
 

@@ -85,7 +85,7 @@ export default function LogsScreen() {
 
   // Group transactions by date for the "middle row" separators
   const dataWithSeparators = useMemo(() => {
-    const result: (Transaction | { isSeparator: true; date: string })[] = [];
+    const result: ListItem[] = [];
     let lastDate = '';
 
     // Sort transactions by date descending (already done by query, but ensure)
@@ -105,8 +105,17 @@ export default function LogsScreen() {
     return result;
   }, [transactions]);
 
-  const renderRecordItem = ({ item, index }: { item: any; index: number }) => {
-    if (item.isSeparator) {
+  type Separator = { isSeparator: true; date: string };
+  type ListItem = Transaction | Separator;
+
+  const renderRecordItem = ({
+    item,
+    index,
+  }: {
+    item: ListItem;
+    index: number;
+  }) => {
+    if ('isSeparator' in item) {
       return (
         <View className="bg-slate-950/50 py-2 items-center border-b border-white/5">
           <Text className="text-slate-600 text-[10px] font-bold tracking-[2px] uppercase">
@@ -117,16 +126,16 @@ export default function LogsScreen() {
     }
 
     const isLast = index === dataWithSeparators.length - 1;
-    const dateParts = item.date.split('-');
+    // casting to Transaction or just using item because TS knows it's not Separator
+    const t = item as Transaction;
+    const dateParts = t.date.split('-');
     const shortDate = `${dateParts[2]}/${dateParts[1]}`;
     const displayLabel =
-      item.type === 'expense'
-        ? item.category || item.description
-        : item.description;
+      t.type === 'expense' ? t.category || t.description : t.description;
 
     return (
       <Pressable
-        onLongPress={() => handleDelete(item.id)}
+        onLongPress={() => handleDelete(t.id)}
         className={`flex-row items-center bg-slate-900 border-b border-white/5 active:bg-slate-800 px-2 py-3 ${isLast ? 'rounded-b-xl border-b-0' : ''}`}
       >
         <Text className="text-slate-500 text-[10px] flex-[0.8] font-medium">
@@ -139,13 +148,13 @@ export default function LogsScreen() {
           className="text-slate-400 text-[10px] flex-[1] uppercase"
           numberOfLines={1}
         >
-          {item.account}
+          {t.account}
         </Text>
         <Text
-          className={`text-xs font-bold flex-[1.2] text-right ${item.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}
+          className={`text-xs font-bold flex-[1.2] text-right ${t.type === 'income' ? 'text-emerald-400' : 'text-slate-200'}`}
         >
-          {item.type === 'income' ? '+' : '-'}
-          {formatNaira(item.amount)}
+          {t.type === 'income' ? '+' : '-'}
+          {formatNaira(t.amount)}
         </Text>
       </Pressable>
     );
@@ -230,10 +239,8 @@ export default function LogsScreen() {
           <View className="flex-1 px-4">
             <FlatList
               data={dataWithSeparators}
-              keyExtractor={(item, index) =>
-                item.isSeparator
-                  ? `sep-${item.date}-${index}`
-                  : item.id.toString()
+              keyExtractor={item =>
+                'isSeparator' in item ? `sep-${item.date}` : item.id.toString()
               }
               renderItem={renderRecordItem}
               ListHeaderComponent={renderRecordsHeader}
@@ -269,7 +276,9 @@ export default function LogsScreen() {
               </View>
             </View>
             <View className="bg-slate-950 p-4 rounded-2xl flex-row justify-between items-center border border-white/5">
-              <Text className="text-slate-300 font-medium">Net Balance</Text>
+              <Text className="text-slate-300 font-medium">
+                Monthly Savings
+              </Text>
               <Text
                 className={`text-xl font-bold ${totals.balance >= 0 ? 'text-white' : 'text-rose-500'}`}
               >

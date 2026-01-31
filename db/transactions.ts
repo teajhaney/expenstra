@@ -44,8 +44,8 @@ export async function getMonthlySummary(db: SQLiteDatabase, month: string) {
     total_expense: number;
   }>(
     `SELECT 
-      SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income,
-      SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expense
+      SUM(CASE WHEN LOWER(type) = 'income' THEN CAST(amount AS REAL) ELSE 0 END) as total_income,
+      SUM(CASE WHEN LOWER(type) = 'expense' THEN CAST(amount AS REAL) ELSE 0 END) as total_expense
      FROM transactions 
      WHERE date LIKE ?`,
     [`${month}%`]
@@ -133,6 +133,13 @@ export async function deleteCategory(db: SQLiteDatabase, id: number) {
 export async function getAccounts(db: SQLiteDatabase) {
   return await db.getAllAsync<{ id: number; name: string }>(
     'SELECT * FROM accounts ORDER BY id ASC'
+  );
+}
+
+export async function addAccount(db: SQLiteDatabase, name: string) {
+  return await db.runAsync(
+    'INSERT OR IGNORE INTO accounts (name) VALUES (?)',
+    [name]
   );
 }
 

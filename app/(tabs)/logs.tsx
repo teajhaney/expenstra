@@ -14,8 +14,11 @@ import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ViewMode = 'records' | 'history';
+
+const TAB_BAR_HEIGHT = 60;
 
 export default function LogsScreen() {
   const db = useSQLiteContext();
@@ -186,120 +189,136 @@ export default function LogsScreen() {
   );
 
   return (
-    <View className="flex-1 bg-slate-950 pt-4">
-      {/* Sub-tabs Toggle */}
-      <View className="flex-row bg-slate-900 p-1 rounded-2xl mb-4 mx-4">
-        <Pressable
-          onPress={() => setViewMode('records')}
-          className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center ${viewMode === 'records' ? 'bg-slate-800' : ''}`}
-        >
-          <Ionicons
-            name="list"
-            size={16}
-            color={viewMode === 'records' ? '#fff' : '#475569'}
-          />
-          <Text
-            className={`ml-2 text-sm ${viewMode === 'records' ? 'text-white font-bold' : 'text-slate-500'}`}
+    <SafeAreaView className="flex-1 bg-slate-950" edges={['top', 'bottom']}>
+      <View className="flex-1 pt-4">
+        {/* Sub-tabs Toggle */}
+        <View className="flex-row bg-slate-900 p-1 rounded-2xl mb-4 mx-4">
+          <Pressable
+            onPress={() => setViewMode('records')}
+            className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center ${viewMode === 'records' ? 'bg-slate-800' : ''}`}
           >
-            Records
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setViewMode('history')}
-          className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center ${viewMode === 'history' ? 'bg-slate-800' : ''}`}
-        >
-          <Ionicons
-            name="grid"
-            size={16}
-            color={viewMode === 'history' ? '#fff' : '#475569'}
-          />
-          <Text
-            className={`ml-2 text-sm ${viewMode === 'history' ? 'text-white font-bold' : 'text-slate-500'}`}
-          >
-            History
-          </Text>
-        </Pressable>
-      </View>
-
-      {viewMode === 'records' ? (
-        <View className="flex-1">
-          <View className="flex-row justify-between items-center mb-2 px-5">
-            <Text className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-              {formatMonthDisplayName(selectedMonth)} Sheet
+            <Ionicons
+              name="list"
+              size={16}
+              color={viewMode === 'records' ? '#fff' : '#475569'}
+            />
+            <Text
+              className={`ml-2 text-sm ${viewMode === 'records' ? 'text-white font-bold' : 'text-slate-500'}`}
+            >
+              Records
             </Text>
-            {selectedMonth !== getCurrentMonth() && (
-              <Pressable onPress={() => setSelectedMonth(getCurrentMonth())}>
-                <Text className="text-indigo-400 text-[10px] font-bold uppercase">
-                  Back to Today
-                </Text>
-              </Pressable>
-            )}
-          </View>
+          </Pressable>
+          <Pressable
+            onPress={() => setViewMode('history')}
+            className={`flex-1 py-2.5 rounded-xl items-center flex-row justify-center ${viewMode === 'history' ? 'bg-slate-800' : ''}`}
+          >
+            <Ionicons
+              name="grid"
+              size={16}
+              color={viewMode === 'history' ? '#fff' : '#475569'}
+            />
+            <Text
+              className={`ml-2 text-sm ${viewMode === 'history' ? 'text-white font-bold' : 'text-slate-500'}`}
+            >
+              History
+            </Text>
+          </Pressable>
+        </View>
 
-          <View className="flex-1 px-4">
-            <FlatList
-              data={dataWithSeparators}
-              keyExtractor={item =>
-                'isSeparator' in item ? `sep-${item.date}` : item.id.toString()
-              }
-              renderItem={renderRecordItem}
-              ListHeaderComponent={renderRecordsHeader}
-              ListEmptyComponent={
-                <View className="mt-20 items-center">
-                  <Ionicons name="receipt-outline" size={48} color="#1e293b" />
-                  <Text className="text-slate-600 mt-4">No records found.</Text>
+        {viewMode === 'records' ? (
+          <View className="flex-1 min-h-0">
+            <View className="flex-row justify-between items-center mb-2 px-5">
+              <Text className="text-slate-400 font-bold uppercase text-[10px] tracking-widest" allowFontScaling maxFontSizeMultiplier={1.5}>
+                {formatMonthDisplayName(selectedMonth)} Sheet
+              </Text>
+              {selectedMonth !== getCurrentMonth() && (
+                <Pressable onPress={() => setSelectedMonth(getCurrentMonth())}>
+                  <Text className="text-indigo-400 text-[10px] font-bold uppercase" allowFontScaling maxFontSizeMultiplier={1.5}>
+                    Back to Today
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            <View className="flex-1 min-h-0 px-4">
+              <FlatList
+                data={dataWithSeparators}
+                keyExtractor={item =>
+                  'isSeparator' in item
+                    ? `sep-${item.date}`
+                    : item.id.toString()
+                }
+                renderItem={renderRecordItem}
+                ListHeaderComponent={renderRecordsHeader}
+                ListEmptyComponent={
+                  <View className="mt-20 items-center">
+                    <Ionicons
+                      name="receipt-outline"
+                      size={48}
+                      color="#1e293b"
+                    />
+                    <Text className="text-slate-600 mt-4" allowFontScaling maxFontSizeMultiplier={1.5}>
+                      No records found.
+                    </Text>
+                  </View>
+                }
+                showsVerticalScrollIndicator={false}
+                stickyHeaderIndices={[0]}
+                contentContainerStyle={{ paddingBottom: 16 }}
+              />
+            </View>
+
+            {/* Fixed Footer Summary - always visible above tab bar */}
+            <View
+              className="bg-slate-900 border-t border-white/10 p-5"
+              style={{ paddingBottom: TAB_BAR_HEIGHT + 24 }}
+            >
+              <View className="flex-row justify-between mb-4">
+                <View>
+                  <Text className="text-slate-500 text-[10px] font-bold uppercase mb-1" allowFontScaling maxFontSizeMultiplier={1.5}>
+                    Total Income
+                  </Text>
+                  <Text className="text-emerald-400 text-lg font-bold" allowFontScaling maxFontSizeMultiplier={1.5}>
+                    +{formatNaira(totals.income)}
+                  </Text>
                 </View>
-              }
+                <View className="items-end">
+                  <Text className="text-slate-500 text-[10px] font-bold uppercase mb-1" allowFontScaling maxFontSizeMultiplier={1.5}>
+                    Total Expenses
+                  </Text>
+                  <Text className="text-rose-400 text-lg font-bold" allowFontScaling maxFontSizeMultiplier={1.5}>
+                    -{formatNaira(totals.expense)}
+                  </Text>
+                </View>
+              </View>
+              <View className="bg-slate-950 p-4 rounded-2xl flex-row justify-between items-center border border-white/5">
+                <Text className="text-slate-300 font-medium" allowFontScaling maxFontSizeMultiplier={1.5}>
+                  Monthly Savings
+                </Text>
+                <Text
+                  className={`text-xl font-bold ${totals.balance >= 0 ? 'text-white' : 'text-rose-500'}`}
+                  allowFontScaling
+                  maxFontSizeMultiplier={1.5}
+                >
+                  {formatNaira(totals.balance)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View className="flex-1 px-4">
+            <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4 ml-1">
+              Monthly Archive
+            </Text>
+            <FlatList
+              data={history}
+              keyExtractor={item => item.month}
+              renderItem={renderHistoryItem}
               showsVerticalScrollIndicator={false}
-              stickyHeaderIndices={[0]}
             />
           </View>
-
-          {/* Fixed Footer Summary */}
-          <View className="bg-slate-900 border-t border-white/10 p-5 pb-8">
-            <View className="flex-row justify-between mb-4">
-              <View>
-                <Text className="text-slate-500 text-[10px] font-bold uppercase mb-1">
-                  Total Income
-                </Text>
-                <Text className="text-emerald-400 text-lg font-bold">
-                  +{formatNaira(totals.income)}
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text className="text-slate-500 text-[10px] font-bold uppercase mb-1">
-                  Total Expenses
-                </Text>
-                <Text className="text-rose-400 text-lg font-bold">
-                  -{formatNaira(totals.expense)}
-                </Text>
-              </View>
-            </View>
-            <View className="bg-slate-950 p-4 rounded-2xl flex-row justify-between items-center border border-white/5">
-              <Text className="text-slate-300 font-medium">
-                Monthly Savings
-              </Text>
-              <Text
-                className={`text-xl font-bold ${totals.balance >= 0 ? 'text-white' : 'text-rose-500'}`}
-              >
-                {formatNaira(totals.balance)}
-              </Text>
-            </View>
-          </View>
-        </View>
-      ) : (
-        <View className="flex-1 px-4">
-          <Text className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4 ml-1">
-            Monthly Archive
-          </Text>
-          <FlatList
-            data={history}
-            keyExtractor={item => item.month}
-            renderItem={renderHistoryItem}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      )}
-    </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }

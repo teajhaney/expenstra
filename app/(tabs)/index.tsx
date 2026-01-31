@@ -1,83 +1,58 @@
-import {
-  getAccountBalances,
-  getExpensesByCategory,
-  getMonthlySummary,
-} from '@/db/transactions';
-import { addMonths, formatNaira } from '@/utils/format';
+import { getAccountBalances, getMonthlySummary } from '@/db/transactions';
+import { addMonths } from '@/utils/format';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useMemo, useState } from 'react';
-import {
-  Dimensions,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
-import { PieChart } from 'react-native-gifted-charts';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Dimensions, NativeSyntheticEvent, NativeScrollEvent, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+// Components
+import AccountCard from '@/components/ui/AccountCard';
+import BalanceCard from '@/components/ui/BalanceCard';
+import MonthNavigator from '@/components/ui/MonthNavigator';
+import SectionHeader from '@/components/ui/SectionHeader';
 
-interface ChartData {
-  value: number;
-  label?: string;
-  spacing?: number;
-  labelWidth?: number;
-  labelTextStyle?: object;
-  frontColor?: string;
-  color?: string;
-  text?: string;
-  category?: string;
-}
+// Types
+import type { AccountBalance, MonthlySummary } from '@/types';
 
 export default function DashboardScreen() {
   const db = useSQLiteContext();
-  const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
-  const [accountBalances, setAccountBalances] = useState<
-    { account: string; balance: number; income: number; expense: number }[]
-  >([]);
-  const [pieData, setPieData] = useState<ChartData[]>([]);
+  const [summary, setSummary] = useState<MonthlySummary>({ 
+    income: 0, 
+    expense: 0, 
+    balance: 0 
+  });
+  const [accountBalances, setAccountBalances] = useState<AccountBalance[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [refreshing, setRefreshing] = useState(false);
+  const accountsScrollRef = useRef<ScrollView>(null);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [scrollViewWidth, setScrollViewWidth] = useState(0);
+  const { width: screenWidth } = Dimensions.get('window');
+  const cardScrollAmount = Math.min(220, screenWidth * 0.7);
+  const canScrollLeft = accountBalances.length > 1 && scrollOffset > 10;
+  const canScrollRight = accountBalances.length > 1 && contentWidth > scrollViewWidth && scrollOffset < contentWidth - scrollViewWidth - 10;
 
   // Format YYYY-MM for queries
   const currentMonth = useMemo(() => {
     return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
   }, [currentDate]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
   const totalGlobalBalance = useMemo(() => {
     return accountBalances.reduce((sum, item) => sum + item.balance, 0);
   }, [accountBalances]);
 
   const fetchSummary = useCallback(async () => {
-    const [summaryData, balancesData, categoryData] = await Promise.all([
+    const [summaryData, balancesData] = await Promise.all([
       getMonthlySummary(db, currentMonth),
       getAccountBalances(db, currentMonth),
-      getExpensesByCategory(db, currentMonth),
     ]);
 
     setSummary(summaryData);
     setAccountBalances(balancesData);
-
-    // Prepare Pie Data
-    const colors = [
-      '#f43f5e',
-      '#3b82f6',
-      '#10b981',
-      '#f59e0b',
-      '#8b5cf6',
-      '#ec4899',
-    ];
-    const pData = categoryData.map((item, index) => ({
-      value: item.total,
-      color: colors[index % colors.length],
-      text: `${((item.total / summaryData.expense) * 100).toFixed(0)}%`,
-      category: item.category,
-    }));
-    setPieData(pData);
   }, [db, currentMonth]);
 
   useFocusEffect(
@@ -94,191 +69,146 @@ export default function DashboardScreen() {
 
   const navigateMonth = (direction: -1 | 1) => {
     const newDate = addMonths(currentDate, direction);
-    if (newDate > new Date()) return; // Prevent future
+    if (newDate > new Date()) return;
     setCurrentDate(newDate);
   };
 
+  const scrollAccounts = (direction: 1 | -1) => {
+    const next = Math.max(0, Math.min(contentWidth - scrollViewWidth, scrollOffset + direction * cardScrollAmount));
+    accountsScrollRef.current?.scrollTo({
+      x: next,
+      animated: true,
+    });
+  };
+
+  const onAccountsScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setScrollOffset(e.nativeEvent.contentOffset.x);
+    setContentWidth(e.nativeEvent.contentSize.width);
+  }, []);
+
   return (
-    <ScrollView
-      className="flex-1 bg-slate-950 pt-6"
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#fff"
+    <SafeAreaView className="flex-1 bg-slate-950" edges={['top', 'bottom']}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#fff"
+          />
+        }
+      >
+        {/* Header Section */}
+        <View className="px-4 mb-4 mt-6">
+          <MonthNavigator 
+            currentDate={currentDate} 
+            onNavigate={navigateMonth} 
+          />
+          <SectionHeader title="Overview" />
+        </View>
+
+        {/* Box 1: Total Balance */}
+        <BalanceCard
+          label="Total Balance"
+          amount={totalGlobalBalance}
+          variant="default"
+          className="mx-4 mb-6"
         />
-      }
-    >
-      <View className="px-4 mb-6">
-        <View className="items-center mb-2">
-          <View className="flex-row items-center justify-center bg-slate-900/50 rounded-full px-4 py-1 border border-white/5">
-            <Pressable
-              onPress={() => navigateMonth(-1)}
-              className="p-2 active:bg-slate-800 rounded-full"
-            >
-              <Ionicons name="chevron-back" size={18} color="#94a3b8" />
-            </Pressable>
-            <Text className="text-slate-300 text-sm font-bold uppercase tracking-widest mx-4 min-w-[100px] text-center">
-              {currentDate.toLocaleString('default', {
-                month: 'long',
-                year: 'numeric',
-              })}
+
+        {/* Box 2: Accounts (Monthly Flow) - own card, scrolls horizontally */}
+        <View className="mx-4 mb-6 bg-slate-900 rounded-3xl border border-slate-800 p-5">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-slate-500 text-xs font-bold uppercase" allowFontScaling maxFontSizeMultiplier={1.5}>
+              Accounts (Monthly Flow)
             </Text>
-            <Pressable
-              onPress={() => navigateMonth(1)}
-              className={`p-2 rounded-full ${currentDate.getMonth() === new Date().getMonth() && currentDate.getFullYear() === new Date().getFullYear() ? 'opacity-30' : 'active:bg-slate-800'}`}
-              disabled={
-                currentDate.getMonth() === new Date().getMonth() &&
-                currentDate.getFullYear() === new Date().getFullYear()
-              }
-            >
-              <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
-            </Pressable>
+            {accountBalances.length > 1 && (
+              <View className="flex-row gap-1">
+                {canScrollLeft && (
+                  <Pressable
+                    onPress={() => scrollAccounts(-1)}
+                    className="w-9 h-9 rounded-full bg-slate-800 items-center justify-center active:bg-slate-700"
+                    accessibilityLabel="Scroll accounts left"
+                  >
+                    <Ionicons name="chevron-back" size={22} color="#94a3b8" />
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={() => scrollAccounts(1)}
+                  className="w-9 h-9 rounded-full bg-slate-800 items-center justify-center active:bg-slate-700"
+                  accessibilityLabel="Scroll accounts right"
+                >
+                  <Ionicons name="chevron-forward" size={22} color="#94a3b8" />
+                </Pressable>
+              </View>
+            )}
+          </View>
+          <ScrollView
+            ref={accountsScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onScroll={onAccountsScroll}
+            onContentSizeChange={(w) => setContentWidth(w)}
+            onLayout={(e) => setScrollViewWidth(e.nativeEvent.layout.width)}
+            scrollEventThrottle={16}
+            contentContainerStyle={
+              accountBalances.length === 1 && scrollViewWidth > 0
+                ? { width: scrollViewWidth, paddingRight: 8 }
+                : { paddingRight: 8 }
+            }
+          >
+            {accountBalances.length > 0 ? (
+              accountBalances.map((item, index) => (
+                <View
+                  key={item.account}
+                  style={
+                    accountBalances.length === 1 && scrollViewWidth > 0
+                      ? { width: scrollViewWidth - 8 }
+                      : undefined
+                  }
+                  className={accountBalances.length === 1 ? '' : 'flex-row items-stretch'}
+                >
+                  {index > 0 && (
+                    <View className="w-px bg-slate-700 mx-0.5 self-stretch min-h-[60px]" />
+                  )}
+                  <AccountCard
+                    account={item.account}
+                    balance={item.balance}
+                    income={item.income}
+                    expense={item.expense}
+                    className={accountBalances.length === 1 ? '' : 'mr-3'}
+                    fullWidth={accountBalances.length === 1}
+                  />
+                </View>
+              ))
+            ) : (
+              <View className="bg-slate-800/50 rounded-2xl w-[280px] items-center justify-center py-6 border border-slate-700">
+                <Text className="text-slate-500 text-sm italic" allowFontScaling maxFontSizeMultiplier={1.5}>
+                  No accounts with data yet.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Box 3: Income & Expense summary */}
+        <View className="mx-4 mb-24 bg-slate-900 rounded-3xl border border-slate-800 p-5">
+          <View className="flex-row justify-between gap-3">
+            <BalanceCard
+              label="Income"
+              amount={summary.income}
+              variant="income"
+              className="flex-1"
+            />
+            <BalanceCard
+              label="Expense"
+              amount={summary.expense}
+              variant="expense"
+              className="flex-1"
+            />
           </View>
         </View>
-        <Text className="text-white text-3xl font-bold">Overview</Text>
-      </View>
-
-      {/* Main Balance Card - Global Balance */}
-      <View className="mx-4 bg-indigo-600 p-6 rounded-3xl mb-6 shadow-xl shadow-indigo-500/20">
-        <Text className="text-indigo-100 text-sm">Total Balance</Text>
-        <Text className="text-white text-4xl font-bold mt-2">
-          {formatNaira(totalGlobalBalance)}
-        </Text>
-      </View>
-
-      {/* Account Balances Section - Horizontal Carousel */}
-      <View className="mb-8">
-        <Text className="px-4 text-slate-500 text-xs font-bold uppercase mb-4 ml-1">
-          Accounts (Monthly Flow)
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
-        >
-          {accountBalances.length > 0 ? (
-            accountBalances.map(item => (
-              <View
-                key={item.account}
-                className="bg-slate-900 px-5 py-4 rounded-3xl border border-slate-800 mr-3 min-w-[200px]"
-              >
-                <Text className="text-slate-400 text-[10px] uppercase font-bold mb-3 tracking-widest">
-                  {item.account}
-                </Text>
-                <Text className="text-white text-2xl font-bold mb-3">
-                  {formatNaira(item.balance)}
-                </Text>
-                <View className="flex-row justify-between border-t border-white/5 pt-3">
-                  <View>
-                    <Text className="text-slate-500 text-[8px] uppercase font-bold mb-0.5">
-                      In (
-                      {currentDate.toLocaleString('default', {
-                        month: 'short',
-                      })}
-                      )
-                    </Text>
-                    <Text className="text-emerald-400 text-xs font-bold">
-                      +{formatNaira(item.income)}
-                    </Text>
-                  </View>
-                  <View className="items-end">
-                    <Text className="text-slate-500 text-[8px] uppercase font-bold mb-0.5">
-                      Out (
-                      {currentDate.toLocaleString('default', {
-                        month: 'short',
-                      })}
-                      )
-                    </Text>
-                    <Text className="text-rose-400 text-xs font-bold">
-                      -{formatNaira(item.expense)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))
-          ) : (
-            <View className="bg-slate-900 px-6 py-8 rounded-3xl border border-slate-800 mr-4 w-[280px] items-center">
-              <Text className="text-slate-500 text-sm italic">
-                No accounts with data yet.
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      </View>
-
-      {/* Charts Section */}
-      <View className="mb-8 px-4">
-        <View className="flex-row justify-between items-center mb-4 ml-1">
-          <Text className="text-slate-500 text-xs font-bold uppercase">
-            Analytics (
-            {currentDate.toLocaleString('default', { month: 'short' })})
-          </Text>
-        </View>
-
-        <View className="bg-slate-900 p-5 rounded-3xl border border-slate-800 items-center">
-          {pieData.length > 0 ? (
-            <View className="items-center">
-              <PieChart
-                data={pieData}
-                donut
-                showText
-                textColor="white"
-                radius={SCREEN_WIDTH * 0.18}
-                innerRadius={SCREEN_WIDTH * 0.1}
-                textSize={10}
-                focusOnPress
-                strokeWidth={2}
-                strokeColor="#0f172a"
-              />
-              <View className="flex-row flex-wrap justify-center mt-6 gap-2">
-                {pieData.map((p, i) => (
-                  <View key={i} className="flex-row items-center mr-3 mb-1">
-                    <View
-                      style={{
-                        width: 8,
-                        height: 8,
-                        backgroundColor: p.color,
-                        borderRadius: 4,
-                        marginRight: 4,
-                      }}
-                    />
-                    <Text className="text-slate-400 text-[10px]">
-                      {p.category}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          ) : (
-            <Text className="text-slate-500 text-xs italic py-10">
-              No expenses for{' '}
-              {currentDate.toLocaleString('default', { month: 'long' })}
-            </Text>
-          )}
-        </View>
-      </View>
-
-      {/* Total In/Out Cards - Scoped to Selected Month */}
-      <View className="flex-row justify-between px-4 mb-8">
-        <View className="bg-slate-900 flex-1 mr-2 p-5 rounded-3xl border border-slate-800 shadow-sm">
-          <Text className="text-slate-400 text-xs mb-1 font-medium">
-            Income ({currentDate.toLocaleString('default', { month: 'short' })})
-          </Text>
-          <Text className="text-emerald-400 text-xl font-bold">
-            {formatNaira(summary.income)}
-          </Text>
-        </View>
-        <View className="bg-slate-900 flex-1 ml-2 p-5 rounded-3xl border border-slate-800 shadow-sm">
-          <Text className="text-slate-400 text-xs mb-1 font-medium">
-            Expense ({currentDate.toLocaleString('default', { month: 'short' })}
-            )
-          </Text>
-          <Text className="text-rose-400 text-xl font-bold">
-            {formatNaira(summary.expense)}
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

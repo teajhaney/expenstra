@@ -53,12 +53,11 @@ export default function DashboardScreen() {
   }, [accountBalances]);
 
   const fetchSummary = useCallback(async () => {
-    const [summaryData, balancesData, categoryData] =
-      await Promise.all([
-        getMonthlySummary(db, currentMonth),
-        getAccountBalances(db, currentMonth),
-        getExpensesByCategory(db, currentMonth),
-      ]);
+    const [summaryData, balancesData, categoryData] = await Promise.all([
+      getMonthlySummary(db, currentMonth),
+      getAccountBalances(db, currentMonth),
+      getExpensesByCategory(db, currentMonth),
+    ]);
 
     setSummary(summaryData);
     setAccountBalances(balancesData);
@@ -79,24 +78,6 @@ export default function DashboardScreen() {
       category: item.category,
     }));
     setPieData(pData);
-
-    // Prepare Bar Data (Trend)
-    const bData: ChartData[] = [];
-    trendData.forEach(item => {
-      bData.push({
-        value: item.income,
-        label: item.label,
-        spacing: 2,
-        labelWidth: 30,
-        labelTextStyle: { color: 'gray', fontSize: 10 },
-        frontColor: '#10b981',
-      });
-      bData.push({
-        value: item.expense,
-        frontColor: '#f43f5e',
-      });
-    });
-    setBarData(bData);
   }, [db, currentMonth]);
 
   useFocusEffect(

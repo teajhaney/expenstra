@@ -18,11 +18,11 @@ export default function BalanceCard({
   const getAmountColor = () => {
     switch (variant) {
       case 'income':
-        return 'text-emerald-400';
+        return 'text-income';
       case 'expense':
-        return 'text-rose-400';
+        return 'text-expense';
       default:
-        return 'text-white';
+        return 'text-primary';
     }
   };
 
@@ -32,7 +32,7 @@ export default function BalanceCard({
 
   return (
     <GlassCard className={className}>
-      <Text className="text-slate-400 text-xs mb-1 font-bold uppercase">
+      <Text className="text-muted text-xs mb-1 font-bold uppercase">
         {label}
       </Text>
       <Text className={`${getAmountColor()} ${getTextSize()} font-bold`}>

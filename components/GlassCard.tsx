@@ -3,7 +3,7 @@ import { View, ViewProps } from 'react-native';
 import { GlassView } from 'expo-glass-effect';
 
 const opaqueCardClass =
-  'bg-slate-900 rounded-3xl border border-slate-800 p-5 shadow-sm elevation-4';
+  'bg-surface rounded-3xl border border-default p-5 shadow-sm elevation-4';
 
 interface GlassCardProps extends ViewProps {
   children: React.ReactNode;

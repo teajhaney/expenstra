@@ -7,8 +7,6 @@ import { Platform, StyleSheet } from 'react-native';
 import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
@@ -19,17 +17,17 @@ function TabBarIcon(props: {
 const TAB_BAR_HEIGHT = 60;
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const tabBarBottomPadding = insets.bottom;
+  const tabBarBg = Platform.OS === 'ios' ? 'transparent' : '#f8fafc';
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: '#fff', // White for high contrast on glass
-          tabBarInactiveTintColor: '#94a3b8', // Slate-400
+          tabBarActiveTintColor: '#4f46e5',
+          tabBarInactiveTintColor: '#64748b',
           tabBarStyle: {
             position: 'absolute',
             bottom: 0,
@@ -37,7 +35,7 @@ export default function TabLayout() {
             right: 0,
             elevation: 0,
             borderTopWidth: 0,
-            backgroundColor: Platform.OS === 'ios' ? 'transparent' : '#0f172a', // Transparent on iOS, Dark on Android
+            backgroundColor: tabBarBg,
             height: TAB_BAR_HEIGHT + tabBarBottomPadding,
             paddingTop: 10,
             paddingBottom: tabBarBottomPadding,
@@ -46,7 +44,7 @@ export default function TabLayout() {
             Platform.OS === 'ios' ? (
               <GlassView
                 style={StyleSheet.absoluteFill}
-                glassEffectStyle={'dark' as any}
+                glassEffectStyle={'light' as any}
               />
             ) : null,
           headerShown: false, // Cleaner full-screen look

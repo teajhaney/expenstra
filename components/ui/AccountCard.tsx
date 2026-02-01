@@ -23,26 +23,26 @@ export default function AccountCard({
   const widthClass = fullWidth ? 'flex-1 min-w-0' : 'min-w-[200px]';
   return (
     <GlassCard className={`${widthClass} ${className}`}>
-      <Text className="text-slate-400 text-[10px] uppercase font-bold mb-3 tracking-widest">
+      <Text className="text-secondary text-[10px] uppercase font-bold mb-3 tracking-widest">
         {account}
       </Text>
-      <Text className="text-white text-2xl font-bold mb-3">
+      <Text className="text-primary text-2xl font-bold mb-3">
         {formatNaira(balance)}
       </Text>
-      <View className="flex-row justify-between border-t border-white/5 pt-3">
+      <View className="flex-row justify-between border-t border-card-inner pt-3">
         <View>
-          <Text className="text-slate-500 text-[10px] uppercase font-bold mb-0.5">
+          <Text className="text-muted text-[10px] uppercase font-bold mb-0.5">
             In
           </Text>
-          <Text className="text-emerald-400 text-sm font-bold">
+          <Text className="text-income text-sm font-bold">
             +{formatNaira(income)}
           </Text>
         </View>
         <View className="items-end">
-          <Text className="text-slate-500 text-[10px] uppercase font-bold mb-0.5">
+          <Text className="text-muted text-[10px] uppercase font-bold mb-0.5">
             Out
           </Text>
-          <Text className="text-rose-400 text-sm font-bold">
+          <Text className="text-expense text-sm font-bold">
             -{formatNaira(expense)}
           </Text>
         </View>

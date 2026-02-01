@@ -32,29 +32,32 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-950" edges={['top', 'bottom']}>
-      <ScrollView className="flex-1 px-4 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
+    <SafeAreaView className="flex-1 bg-app" edges={['top', 'bottom']}>
+      <ScrollView
+        className="flex-1 px-4 pt-6"
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         <View className="mb-8">
-          <Text className="text-white text-3xl font-bold">Settings</Text>
+          <Text className="text-primary text-[30px] font-bold">Settings</Text>
         </View>
 
-        <View className="bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 mb-6">
-          <Text className="text-slate-500 text-xs font-bold uppercase p-4 pb-2">
+        <View className="bg-surface rounded-3xl overflow-hidden border border-default mb-6">
+          <Text className="text-muted text-xs font-bold uppercase p-4 pb-2">
             Data Portability
           </Text>
 
           <Pressable
             onPress={handleExportMonth}
-            className="flex-row items-center p-4 border-b border-slate-800 active:bg-slate-800"
+            className="flex-row items-center p-4 border-b border-default active:bg-surface-hover"
           >
-            <View className="w-10 h-10 bg-indigo-500/10 rounded-full items-center justify-center">
+            <View className="w-10 h-10 bg-icon-accent rounded-full items-center justify-center">
               <Ionicons name="download-outline" size={20} color="#818cf8" />
             </View>
             <View className="ml-4">
-              <Text className="text-white font-medium">
+              <Text className="text-primary font-medium">
                 Export Current Month
               </Text>
-              <Text className="text-slate-500 text-xs mt-1">
+              <Text className="text-muted text-xs mt-1">
                 Generate CSV for {formatMonthDisplayName(currentMonth)}
               </Text>
             </View>
@@ -62,28 +65,28 @@ export default function SettingsScreen() {
 
           <Pressable
             onPress={handleExportAll}
-            className="flex-row items-center p-4 active:bg-slate-800"
+            className="flex-row items-center p-4 active:bg-surface-hover"
           >
-            <View className="w-10 h-10 bg-indigo-500/10 rounded-full items-center justify-center">
+            <View className="w-10 h-10 bg-icon-accent rounded-full items-center justify-center">
               <Ionicons name="archive-outline" size={20} color="#818cf8" />
             </View>
             <View className="ml-4">
-              <Text className="text-white font-medium">Export All Data</Text>
-              <Text className="text-slate-500 text-xs mt-1">
+              <Text className="text-primary font-medium">Export All Data</Text>
+              <Text className="text-muted text-xs mt-1">
                 Full backup of all transactions in CSV
               </Text>
             </View>
           </Pressable>
         </View>
 
-        <View className="bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 mb-6">
-          <Text className="text-slate-500 text-xs font-bold uppercase p-4 pb-2">
+        <View className="bg-surface rounded-3xl overflow-hidden border border-default mb-6">
+          <Text className="text-muted text-xs font-bold uppercase p-4 pb-2">
             About
           </Text>
 
           <Link href="/modal" asChild>
-            <Pressable className="flex-row items-center p-4 active:bg-slate-800">
-              <View className="w-10 h-10 bg-slate-800 rounded-full items-center justify-center">
+            <Pressable className="flex-row items-center p-4 active:bg-surface-hover">
+              <View className="w-10 h-10 bg-icon-container rounded-full items-center justify-center">
                 <Ionicons
                   name="information-circle-outline"
                   size={20}
@@ -91,8 +94,10 @@ export default function SettingsScreen() {
                 />
               </View>
               <View className="ml-4">
-                <Text className="text-white font-medium">App Information</Text>
-                <Text className="text-slate-500 text-xs mt-1">
+                <Text className="text-primary font-medium">
+                  App Information
+                </Text>
+                <Text className="text-muted text-xs mt-1">
                   Version 1.0.0 • Offline-first
                 </Text>
               </View>
@@ -100,7 +105,7 @@ export default function SettingsScreen() {
           </Link>
         </View>
 
-        <Text className="text-slate-600 text-center text-xs mt-4 mb-10 italic">
+        <Text className="text-muted-dim text-center text-xs mt-4 mb-10 italic">
           "Simple tracking, powerful financial clarity."
         </Text>
       </ScrollView>

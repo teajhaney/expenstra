@@ -18,14 +18,14 @@ export default function MonthNavigator({
 
   return (
     <View className="items-center mb-2">
-      <View className="flex-row items-center justify-center bg-slate-900/50 rounded-full px-4 py-1 border border-white/5">
+      <View className="flex-row items-center justify-center bg-surface rounded-full px-4 py-1 border border-subtle">
         <Pressable
           onPress={() => onNavigate(-1)}
-          className="p-2 active:bg-slate-800 rounded-full"
+          className="p-2 active:bg-surface-hover rounded-full"
         >
           <Ionicons name="chevron-back" size={18} color="#94a3b8" />
         </Pressable>
-        <Text className="text-slate-300 text-sm font-bold uppercase tracking-widest mx-4 min-w-[100px] text-center">
+        <Text className="text-secondary text-sm font-bold uppercase tracking-widest mx-4 min-w-[100px] text-center">
           {currentDate.toLocaleString('default', {
             month: 'long',
             year: 'numeric',
@@ -36,7 +36,7 @@ export default function MonthNavigator({
           className={`p-2 rounded-full ${
             disableFuture && isCurrentMonth
               ? 'opacity-30'
-              : 'active:bg-slate-800'
+              : 'active:bg-surface-hover'
           }`}
           disabled={disableFuture && isCurrentMonth}
         >

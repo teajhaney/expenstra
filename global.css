@@ -1,3 +1,123 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================
+   Theme: all app colors live here.
+   Light mode only - simplified theme system.
+   ============================================ */
+
+@layer components {
+  /* Screen / page background */
+  .bg-app {
+    @apply bg-slate-50;
+  }
+
+  /* Cards, surfaces, list rows */
+  .bg-surface {
+    @apply bg-white;
+  }
+
+  /* Pressed / active / selected surface */
+  .bg-surface-hover {
+    @apply bg-slate-200;
+  }
+
+  /* Muted surface (e.g. empty state, secondary card) */
+  .bg-surface-muted {
+    @apply bg-slate-100;
+  }
+
+  /* Inner card (e.g. Monthly Savings box) */
+  .bg-card-inner {
+    @apply bg-slate-100;
+  }
+
+  /* Borders */
+  .border-default {
+    @apply border-slate-200;
+  }
+
+  .border-subtle {
+    @apply border-slate-200;
+  }
+
+  .border-card-inner {
+    @apply border-slate-200;
+  }
+
+  /* Divider line between items */
+  .bg-divider {
+    @apply bg-slate-300;
+  }
+
+  /* Text */
+  .text-primary {
+    @apply text-slate-900;
+  }
+
+  .text-secondary {
+    @apply text-slate-600;
+  }
+
+  .text-muted {
+    @apply text-slate-500;
+  }
+
+  .text-muted-dim {
+    @apply text-slate-400;
+  }
+
+  /* Status colors */
+  .text-income {
+    @apply text-emerald-600;
+  }
+
+  .text-expense {
+    @apply text-red-600;
+  }
+
+  .text-expense-negative {
+    @apply text-red-500;
+  }
+
+  /* Accent colors */
+  .text-accent {
+    @apply text-indigo-600;
+  }
+
+  .bg-accent {
+    @apply bg-indigo-600;
+  }
+
+  .text-on-accent {
+    @apply text-white;
+  }
+
+  .border-accent {
+    @apply border-indigo-600;
+  }
+
+  /* Icon backgrounds */
+  .bg-icon-container {
+    @apply bg-slate-100;
+  }
+
+  .bg-icon-accent {
+    @apply bg-indigo-100;
+  }
+
+  /* Scroll buttons */
+  .bg-scroll-btn {
+    @apply bg-slate-200;
+  }
+
+  .bg-scroll-btn-active {
+    @apply bg-slate-300;
+  }
+
+  /* Tab bar */
+  .bg-tab-bar {
+    @apply bg-white;
+  }
+}

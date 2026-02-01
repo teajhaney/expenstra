@@ -71,10 +71,15 @@ export async function getAllTransactions(db: SQLiteDatabase) {
 export async function getAccountBalances(db: SQLiteDatabase, month?: string) {
   // If month is provided, we filter In/Out by that month, but Balance remains all-time.
   // If no month provided, it defaults to all-time stats for everything.
-  
+
   const monthFilter = month ? `AND date LIKE '${month}%'` : '';
-  
-  return await db.getAllAsync<{ account: string; balance: number; income: number; expense: number }>(
+
+  return await db.getAllAsync<{
+    account: string;
+    balance: number;
+    income: number;
+    expense: number;
+  }>(
     `SELECT 
       account,
       SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as balance,
@@ -137,10 +142,9 @@ export async function getAccounts(db: SQLiteDatabase) {
 }
 
 export async function addAccount(db: SQLiteDatabase, name: string) {
-  return await db.runAsync(
-    'INSERT OR IGNORE INTO accounts (name) VALUES (?)',
-    [name]
-  );
+  return await db.runAsync('INSERT OR IGNORE INTO accounts (name) VALUES (?)', [
+    name,
+  ]);
 }
 
 export async function getExpensesByCategory(db: SQLiteDatabase, month: string) {
@@ -190,4 +194,17 @@ export async function getLast6MonthsTrend(db: SQLiteDatabase) {
      GROUP BY month
      ORDER BY month ASC`
   );
+}
+
+export async function deleteTransactionsByMonth(
+  db: SQLiteDatabase,
+  month: string
+) {
+  return await db.runAsync('DELETE FROM transactions WHERE date LIKE ?', [
+    `${month}%`,
+  ]);
+}
+
+export async function deleteAllTransactions(db: SQLiteDatabase) {
+  return await db.runAsync('DELETE FROM transactions');
 }

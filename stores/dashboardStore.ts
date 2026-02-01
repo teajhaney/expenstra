@@ -1,7 +1,8 @@
-import { create } from 'zustand';
-import { getCurrentMonth, addMonths } from '@/utils/format';
-import { TransactionRepo } from '@/data/transactionsRepo';
+// Dashboard store for managing financial data
 import { SQLiteDatabase } from 'expo-sqlite';
+import { create } from 'zustand';
+import { TransactionRepo } from '../data/transactionsRepo';
+import { addMonths, getCurrentMonth } from '../utils/format';
 
 interface DashboardState {
   currentMonth: string;
@@ -43,7 +44,10 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   repo: null,
 
   initializeRepo: (db: SQLiteDatabase) => {
-    set({ repo: new TransactionRepo(db) });
+    const repo = new TransactionRepo(db);
+    set({ repo });
+    // Auto-refresh data when repo is initialized
+    get().refresh();
   },
 
   setMonth: (month: string) => {
@@ -71,16 +75,19 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
         repo.getMonthlySummary(currentMonth),
         repo.getAccountBalances(currentMonth),
       ]);
-      
+
       set({
         summary: summaryData,
         accountBalances: balancesData,
         isLoading: false,
       });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to load dashboard data',
-        isLoading: false 
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to load dashboard data',
+        isLoading: false,
       });
     }
   },

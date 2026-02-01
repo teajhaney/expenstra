@@ -21,6 +21,8 @@ export default function AccountCard({
   fullWidth = false,
 }: AccountCardProps) {
   const widthClass = fullWidth ? 'flex-1 min-w-0' : 'min-w-[200px]';
+  const monthlyFlow = income - expense;
+
   return (
     <GlassCard className={`${widthClass} ${className}`}>
       <Text className="text-secondary text-[10px] uppercase font-bold mb-3 tracking-widest">
@@ -46,6 +48,17 @@ export default function AccountCard({
             -{formatNaira(expense)}
           </Text>
         </View>
+      </View>
+      <View className="flex-row justify-between mt-2 pt-2 border-t border-card-inner">
+        <Text className="text-muted text-[10px] uppercase font-bold">
+          Monthly Flow
+        </Text>
+        <Text
+          className={`text-sm font-bold ${monthlyFlow >= 0 ? 'text-income' : 'text-expense-negative'}`}
+        >
+          {monthlyFlow >= 0 ? '+' : ''}
+          {formatNaira(monthlyFlow)}
+        </Text>
       </View>
     </GlassCard>
   );

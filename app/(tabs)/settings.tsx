@@ -1,4 +1,9 @@
-import { getAllTransactions, getTransactionsByMonth } from '@/db/transactions';
+import {
+  deleteAllTransactions,
+  deleteTransactionsByMonth,
+  getAllTransactions,
+  getTransactionsByMonth,
+} from '@/db/transactions';
 import { exportToCSV } from '@/utils/export';
 import { formatMonthDisplayName, getCurrentMonth } from '@/utils/format';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +34,55 @@ export default function SettingsScreen() {
       const message = e instanceof Error ? e.message : 'Unknown error';
       Alert.alert('Export Failed', message);
     }
+  };
+
+  const handleResetMonth = async () => {
+    Alert.alert(
+      'Reset Current Month',
+      `Delete all transactions for ${formatMonthDisplayName(currentMonth)}? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteTransactionsByMonth(db, currentMonth);
+              Alert.alert('Success', 'Current month data has been deleted');
+            } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : 'Unknown error';
+              Alert.alert('Delete Failed', message);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleResetAll = async () => {
+    Alert.alert(
+      'Reset All Data',
+      'Delete ALL transactions, accounts, and categories? This will completely reset your app and cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Everything',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAllTransactions(db);
+              Alert.alert(
+                'Success',
+                'All data has been deleted. You can start fresh!'
+              );
+            } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : 'Unknown error';
+              Alert.alert('Delete Failed', message);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -74,6 +128,45 @@ export default function SettingsScreen() {
               <Text className="text-primary font-medium">Export All Data</Text>
               <Text className="text-muted text-xs mt-1">
                 Full backup of all transactions in CSV
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+
+        <View className="bg-surface rounded-3xl overflow-hidden border border-default mb-6">
+          <Text className="text-muted text-xs font-bold uppercase p-4 pb-2">
+            Data Management
+          </Text>
+
+          <Pressable
+            onPress={handleResetMonth}
+            className="flex-row items-center p-4 border-b border-default active:bg-surface-hover"
+          >
+            <View className="w-10 h-10 bg-icon-container rounded-full items-center justify-center">
+              <Ionicons name="refresh-outline" size={20} color="#f43f5e" />
+            </View>
+            <View className="ml-4">
+              <Text className="text-primary font-medium">
+                Reset Current Month
+              </Text>
+              <Text className="text-muted text-xs mt-1">
+                Delete all transactions for{' '}
+                {formatMonthDisplayName(currentMonth)}
+              </Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={handleResetAll}
+            className="flex-row items-center p-4 active:bg-surface-hover"
+          >
+            <View className="w-10 h-10 bg-icon-container rounded-full items-center justify-center">
+              <Ionicons name="trash-outline" size={20} color="#f43f5e" />
+            </View>
+            <View className="ml-4">
+              <Text className="text-primary font-medium">Reset All Data</Text>
+              <Text className="text-muted text-xs mt-1">
+                Delete everything and start fresh
               </Text>
             </View>
           </Pressable>

@@ -20,6 +20,26 @@ export const formatMonthDisplayName = (monthStr: string) => {
   return date.toLocaleString('default', { month: 'long', year: 'numeric' });
 };
 
+export const getRecentMonths = (count: number = 12) => {
+  const months = [];
+  const currentDate = new Date();
+
+  for (let i = 0; i < count; i++) {
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - i,
+      1
+    );
+    const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    months.push({
+      value: monthStr,
+      label: formatMonthDisplayName(monthStr),
+    });
+  }
+
+  return months;
+};
+
 export const formatFullDate = (date: Date = new Date()) => {
   return date.toLocaleDateString('en-GB', {
     weekday: 'long',

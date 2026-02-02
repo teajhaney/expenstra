@@ -177,13 +177,21 @@ expense tracker/
 
 **This file is responsible for the Settings screen.** Export actions, database reset, and links are handled here.
 
-| Action                         | Code                                                                                 |
-| ------------------------------ | ------------------------------------------------------------------------------------ |
-| Export Current Month           | `getTransactionsByMonth(db, getCurrentMonth())` → `exportToCSV` in `utils/export.ts` |
-| Export All Data                | `getAllTransactions(db)` → `exportToCSV`                                             |
-| Database Reset - Current Month | `deleteTransactionsByMonth(db, getCurrentMonth())`                                   |
-| Database Reset - All Data      | `deleteAllTransactions(db)`                                                          |
-| Other links                    | `Link` / `ExternalLink` to external URLs                                             |
+| Action                          | Code                                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Export Selected Month           | Opens month picker modal → validates data → `getTransactionsByMonth(db, selectedMonth)` → `exportToCSV` |
+| Export All Data                 | `getAllTransactions(db)` → `exportToCSV` with all-time formatting                                       |
+| Database Reset - Selected Month | `deleteTransactionsByMonth(db, selectedMonth)`                                                          |
+| Database Reset - All Data       | `deleteAllTransactions(db)`                                                                             |
+| Month Picker Modal              | `getRecentMonths(24)` → 24 months of selectable data                                                    |
+| Other links                     | `Link` / `ExternalLink` to external URLs                                                                |
+
+**Export Features:**
+
+- Month selection with data validation
+- Professional CSV formatting with income/expense separation
+- Enhanced export utility with comprehensive summaries
+- Color-free CSV format for better compatibility
 
 **Reset Functions:**
 
@@ -269,8 +277,16 @@ Used by dashboard, logs, add, and DB layer.
 
 ## 13. Utils
 
-- **`utils/format.ts`** – `formatNaira`, `getCurrentMonth`, `formatMonthDisplayName`, `addMonths`, `getTodayDate`, `formatFullDate`
-- **`utils/export.ts`** – `exportToCSV(transactions, filename)` for Settings export
+- **`utils/format.ts`** – `formatNaira`, `getCurrentMonth`, `formatMonthDisplayName`, `addMonths`, `getTodayDate`, `formatFullDate`, `getRecentMonths`
+- **`utils/export.ts`** – Enhanced `exportToCSV` with professional formatting, income/expense separation, monthly summaries, and data validation
+
+**Export Features:**
+
+- Monthly exports with clear headings and summaries
+- All-time exports organized by month/year
+- Income and expense transactions separated
+- Professional CSV formatting without color indicators
+- Comprehensive financial summaries with totals and balances
 
 ---
 
@@ -283,7 +299,9 @@ Used by dashboard, logs, add, and DB layer.
 | Change log list or Monthly Savings                    | `app/(tabs)/logs.tsx`                                                   |
 | Change add-transaction form or validation             | `components/forms/IncomeForm.tsx` or `components/forms/ExpenseForm.tsx` |
 | Change toggle behavior in Add screen                  | `app/(tabs)/add.tsx`                                                    |
-| Change export or database reset options               | `app/(tabs)/settings.tsx`                                               |
+| Change export or database reset options               | `app/(tabs)/settings.tsx` + `utils/export.ts`                           |
+| Change month picker functionality                     | `app/(tabs)/settings.tsx` + `utils/format.ts`                           |
+| Change CSV export format                              | `utils/export.ts`                                                       |
 | Change any DB query or insert                         | `db/transactions.ts`                                                    |
 | Change DB schema or defaults                          | `db/index.ts`                                                           |
 | Change card look (opaque/glass)                       | `components/GlassCard.tsx`                                              |

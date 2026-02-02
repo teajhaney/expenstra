@@ -1,12 +1,9 @@
 import { TransactionRepo } from '@/data/transactionsRepo';
-import { getBalanceByAccount } from '@/db/transactions';
 import {
   expenseTransactionSchema,
   TransactionFormData,
-  transactionSchema,
 } from '@/schemas/transactionSchema';
 import { useReferenceStore } from '@/stores/referenceStore';
-import { formatNaira } from '@/utils/format';
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -22,85 +19,64 @@ import {
   View,
 } from 'react-native';
 
-interface TransactionFormProps {
-  type: 'income' | 'expense';
-  defaultValues?: Partial<TransactionFormData>;
+interface ExpenseFormProps {
   onSubmit?: (data: TransactionFormData) => void;
-  onCancel?: () => void;
 }
 
-export function TransactionForm({
-  type,
-  defaultValues,
-  onSubmit,
-  onCancel,
-}: TransactionFormProps) {
+export function ExpenseForm({ onSubmit }: ExpenseFormProps) {
   const db = useSQLiteContext();
-  const { accounts, categories, addCategory } = useReferenceStore();
-  const [currentType, setCurrentType] = useState<'income' | 'expense'>(type);
+  const { accounts, categories, addCategory, addAccount } = useReferenceStore();
+  const [showCatPicker, setShowCatPicker] = useState(false);
+  const [showAccModal, setShowAccModal] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newAccName, setNewAccName] = useState('');
 
   const {
     control,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors, isValid },
   } = useForm<TransactionFormData>({
-    resolver: zodResolver(
-      currentType === 'expense' ? expenseTransactionSchema : transactionSchema
-    ),
+    resolver: zodResolver(expenseTransactionSchema),
     defaultValues: {
       description: '',
       amount: 0,
-      type: currentType,
+      type: 'expense',
       account: 'Cash',
       category: '',
-      date: new Date().toISOString().split('T')[0], // Auto-set to today
-      ...defaultValues,
+      date: new Date().toISOString().split('T')[0],
     },
-    mode: 'onChange',
   });
 
-  const watchedAmount = watch('amount');
-  const watchedAccount = watch('account');
   const watchedCategory = watch('category');
-  const [showCatPicker, setShowCatPicker] = useState(false);
-  const [newCatName, setNewCatName] = useState('');
-  const [showAccModal, setShowAccModal] = useState(false);
-  const [newAccName, setNewAccName] = useState('');
+  const watchedAccount = watch('account');
 
   const handleFormSubmit = async (data: TransactionFormData) => {
     try {
-      // Balance validation for expenses
-      if (currentType === 'expense') {
-        const balance = await getBalanceByAccount(db, data.account);
-        if (data.amount > balance) {
-          Alert.alert(
-            'Low Balance',
-            `This amount is higher than the ${formatNaira(balance)} available in ${data.account} based on your records.`
-          );
-          return;
-        }
-      }
-
       const repo = new TransactionRepo(db);
 
       const transactionData = {
         ...data,
-        description:
-          data.description?.trim() ||
-          (currentType === 'expense' && data.category
-            ? data.category
-            : 'Income'),
+        description: data.description?.trim() || data.category || 'Expense',
       };
 
       await repo.addTransaction(transactionData);
 
-      Alert.alert('Success', 'Transaction saved!', [
-        { text: 'OK', onPress: () => onCancel?.() },
-      ]);
+      Alert.alert('Success', 'Expense transaction saved!');
 
       onSubmit?.(data);
+
+      // Reset form after successful submission
+      reset({
+        description: '',
+        amount: 0,
+        type: 'expense',
+        account: 'Cash',
+        category: '',
+        date: new Date().toISOString().split('T')[0],
+      });
     } catch (error) {
       Alert.alert('Error', 'Failed to save transaction');
     }
@@ -111,94 +87,40 @@ export function TransactionForm({
     await addCategory(newCatName.trim());
     setValue('category', newCatName.trim());
     setNewCatName('');
+    setShowCatPicker(false);
   };
 
   const handleAddAccount = async () => {
     if (!newAccName.trim()) return;
-    // Note: We need to add addAccount to reference store
+    await addAccount(newAccName.trim());
     setValue('account', newAccName.trim());
     setNewAccName('');
     setShowAccModal(false);
   };
 
   return (
-    <ScrollView
-      className="flex-1 px-4 pt-6"
-      contentContainerStyle={{ paddingBottom: 100 }}
-    >
-      <View className="mb-8">
-        <Text className="text-primary text-[30px] font-bold">
-          New {currentType === 'income' ? 'Income' : 'Expense'}
-        </Text>
-      </View>
-
-      {/* Type Toggle */}
-      <View className="flex-row bg-surface p-1 rounded-2xl mb-6 border border-default">
-        <Pressable
-          onPress={() => {
-            setCurrentType('expense');
-            setValue('type', 'expense');
-          }}
-          className={`flex-1 py-3 rounded-xl items-center ${
-            currentType === 'expense' ? 'bg-surface-hover' : ''
-          }`}
-        >
-          <Text
-            className={`${
-              currentType === 'expense' ? 'text-expense' : 'text-muted'
-            } font-bold`}
-          >
-            Expense
+    <ScrollView className="flex-1 px-4">
+      <View className="py-4">
+        {/* Category Field */}
+        <View className="mt-4">
+          <Text className="text-muted text-xs mb-2 ml-1 uppercase font-bold">
+            Category
           </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            setCurrentType('income');
-            setValue('type', 'income');
-          }}
-          className={`flex-1 py-3 rounded-xl items-center ${
-            currentType === 'income' ? 'bg-surface-hover' : ''
-          }`}
-        >
-          <Text
-            className={`${
-              currentType === 'income' ? 'text-income' : 'text-muted'
-            } font-bold`}
+          <Pressable
+            onPress={() => setShowCatPicker(true)}
+            className="bg-surface p-4 rounded-2xl border border-default flex-row justify-between items-center"
           >
-            Income
-          </Text>
-        </Pressable>
-      </View>
-
-      <View className="space-y-4">
-        {/* Category Dropdown for Expenses */}
-        {currentType === 'expense' && (
-          <View className="mb-4">
-            <Text className="text-muted text-xs mb-2 ml-1 uppercase font-bold">
-              Category
+            <Text className={watchedCategory ? 'text-primary' : 'text-muted'}>
+              {watchedCategory || 'Select category'}
             </Text>
-            <Controller
-              control={control}
-              name="category"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <Pressable
-                  onPress={() => setShowCatPicker(true)}
-                  className="bg-surface flex-row items-center justify-between p-4 rounded-2xl border border-default"
-                >
-                  <Text className={value ? 'text-primary' : 'text-muted'}>
-                    {value || 'Select a category'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={18} color="#64748b" />
-                </Pressable>
-              )}
-            />
-            {errors.category && (
-              <Text className="text-expense text-xs mt-1 ml-1">
-                {errors.category.message}
-              </Text>
-            )}
-          </View>
-        )}
+            <Ionicons name="chevron-down" size={18} color="#64748b" />
+          </Pressable>
+          {errors.category && (
+            <Text className="text-expense text-xs mt-1 ml-1">
+              {errors.category.message}
+            </Text>
+          )}
+        </View>
 
         {/* Amount Field */}
         <View className="mt-4">
@@ -233,9 +155,7 @@ export function TransactionForm({
         {/* Description Field */}
         <View className="mt-4">
           <Text className="text-muted text-xs mb-2 ml-1 uppercase font-bold">
-            {currentType === 'income'
-              ? 'Description (Optional)'
-              : 'Note (Optional)'}
+            Note (Optional)
           </Text>
           <Controller
             control={control}
@@ -243,11 +163,7 @@ export function TransactionForm({
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 className="bg-surface text-primary p-4 rounded-2xl border border-default"
-                placeholder={
-                  currentType === 'income'
-                    ? 'e.g. Salary bonus, Gift'
-                    : 'e.g. Lunch with friends'
-                }
+                placeholder="e.g. Lunch with friends"
                 placeholderTextColor="#64748b"
                 value={value || ''}
                 onChangeText={onChange}
@@ -257,10 +173,10 @@ export function TransactionForm({
           />
         </View>
 
-        {/* Account/Source Selection */}
+        {/* Source Selection */}
         <View className="mt-4">
           <Text className="text-muted text-xs mb-2 ml-1 uppercase font-bold">
-            {currentType === 'income' ? 'Account / Cash' : 'Source'}
+            Source
           </Text>
           <ScrollView
             horizontal
@@ -293,14 +209,6 @@ export function TransactionForm({
                   </Pressable>
                 );
               })}
-              {currentType === 'income' && (
-                <Pressable
-                  onPress={() => setShowAccModal(true)}
-                  className="w-11 h-11 items-center justify-center rounded-full border border-default bg-surface"
-                >
-                  <Ionicons name="add" size={24} color="#94a3b8" />
-                </Pressable>
-              )}
             </View>
           </ScrollView>
         </View>
@@ -314,9 +222,7 @@ export function TransactionForm({
           !isValid ? 'opacity-50' : ''
         }`}
       >
-        <Text className="text-on-accent font-bold text-lg">
-          Save {currentType === 'income' ? 'Income' : 'Expense'}
-        </Text>
+        <Text className="text-on-accent font-bold text-lg">Save Expense</Text>
       </Pressable>
 
       {/* Category Picker Modal */}
@@ -390,26 +296,20 @@ export function TransactionForm({
                 </View>
               ))}
             </ScrollView>
-
-            <View className="p-6 pt-4 border-t border-default bg-surface rounded-b-3xl">
-              <Text className="text-muted text-[10px] font-bold uppercase mb-2 ml-1">
-                Add New Category
-              </Text>
-              <View className="flex-row">
-                <TextInput
-                  className="flex-1 bg-card-inner text-primary p-4 rounded-2xl border border-default mr-2"
-                  placeholder="New category..."
-                  placeholderTextColor="#64748b"
-                  value={newCatName}
-                  onChangeText={setNewCatName}
-                />
-                <Pressable
-                  onPress={handleAddCategory}
-                  className="bg-accent w-14 h-14 items-center justify-center rounded-2xl"
-                >
-                  <Ionicons name="add" size={28} color="#fff" />
-                </Pressable>
-              </View>
+            {/* Add Category Section */}
+            <View className="my-4 py-4 px-6  bg-card-inner rounded-2xl border border-default">
+              <TextInput
+                className="bg-surface border border-default rounded-xl p-3 text-primary mb-3"
+                placeholder="New category name"
+                value={newCatName}
+                onChangeText={setNewCatName}
+              />
+              <Pressable
+                onPress={handleAddCategory}
+                className="bg-accent p-3 rounded-xl items-center"
+              >
+                <Text className="text-on-accent font-bold">Add Category</Text>
+              </Pressable>
             </View>
           </Pressable>
         </Pressable>

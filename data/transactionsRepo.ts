@@ -1,3 +1,4 @@
+import { SQLiteDatabase } from 'expo-sqlite';
 import {
   addTransaction,
   deleteTransaction,
@@ -6,8 +7,7 @@ import {
   getMonthlySummary,
   getTransactionsByMonth,
   Transaction,
-} from '@/db/transactions';
-import { SQLiteDatabase } from 'expo-sqlite';
+} from '../db/transactions';
 
 export class TransactionRepo {
   constructor(private db: SQLiteDatabase) {}

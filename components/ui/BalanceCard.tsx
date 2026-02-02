@@ -9,11 +9,11 @@ interface BalanceCardProps {
   className?: string;
 }
 
-export default function BalanceCard({ 
-  label, 
-  amount, 
+export default function BalanceCard({
+  label,
+  amount,
   variant = 'default',
-  className = ''
+  className = '',
 }: BalanceCardProps) {
   const getAmountColor = () => {
     switch (variant) {
@@ -36,7 +36,7 @@ export default function BalanceCard({
         {label}
       </Text>
       <Text className={`${getAmountColor()} ${getTextSize()} font-bold`}>
-        {formatNaira(amount)}
+        {formatNaira(amount > 0 ? amount : 0)}
       </Text>
     </GlassCard>
   );

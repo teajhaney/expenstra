@@ -201,22 +201,31 @@ export default function DashboardScreen() {
         </View>
 
         {/* Box 3: Income & Expense summary */}
-        <View className="mx-4 mb-24 bg-surface rounded-3xl border border-default p-5">
-          <View className="flex-row justify-between gap-3">
-            <BalanceCard
-              label="Income"
-              amount={summary.income}
-              variant="income"
-              className="flex-1"
-            />
-            <BalanceCard
-              label="Expense"
-              amount={summary.expense}
-              variant="expense"
-              className="flex-1"
-            />
+        {(summary.income > 0 || summary.expense > 0) && (
+          <View className="mx-4 mb-24 bg-surface rounded-3xl border border-default p-5">
+            <Text
+              className="text-muted text-[10px] font-bold uppercase"
+              allowFontScaling
+              maxFontSizeMultiplier={1.5}
+            >
+              Summary
+            </Text>
+            <View className="flex-row justify-between gap-3">
+              <BalanceCard
+                label="Income"
+                amount={summary.income}
+                variant="income"
+                className="flex-1"
+              />
+              <BalanceCard
+                label="Expense"
+                amount={summary.expense}
+                variant="expense"
+                className="flex-1"
+              />
+            </View>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -74,7 +74,7 @@ export async function getAccountBalances(db: SQLiteDatabase, month?: string) {
 
   const monthFilter = month ? `AND date LIKE '${month}%'` : '';
 
-  return await db.getAllAsync<{
+  const results = await db.getAllAsync<{
     account: string;
     balance: number;
     income: number;
@@ -90,6 +90,13 @@ export async function getAccountBalances(db: SQLiteDatabase, month?: string) {
      HAVING balance != 0 OR income != 0 OR expense != 0
      ORDER BY balance DESC`
   );
+
+  // If no results, return default account with 0 values
+  if (results.length === 0) {
+    return [{ account: 'Cash', balance: 0, income: 0, expense: 0 }];
+  }
+
+  return results;
 }
 
 export async function getBalanceByAccount(db: SQLiteDatabase, account: string) {

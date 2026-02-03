@@ -1,0 +1,37 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="512" cy="512" r="512" fill="#4F46E5"/>
+  
+  <!-- White Circle for Icon Background -->
+  <circle cx="512" cy="512" r="400" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- Wallet Icon -->
+  <g transform="translate(512, 512)">
+    <!-- Wallet Body -->
+    <rect x="-180" y="-100" width="360" height="200" rx="20" fill="#4F46E5"/>
+    
+    <!-- Wallet Flap -->
+    <path d="M -180 -100 Q -180 -120 -160 -120 L 160 -120 Q 180 -120 180 -100 L 180 -80 L -180 -80 Z" fill="#6366F1"/>
+    
+    <!-- Wallet Button/Circle -->
+    <circle cx="0" cy="0" r="25" fill="#ffffff"/>
+    
+    <!-- Dollar Sign -->
+    <text x="0" y="8" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#4F46E5" text-anchor="middle">$</text>
+  </g>
+  
+  <!-- Subtle Shadow Effect -->
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Apply shadow to wallet -->
+  <g transform="translate(512, 512)" filter="url(#shadow)">
+    <rect x="-180" y="-100" width="360" height="200" rx="20" fill="#4F46E5"/>
+    <path d="M -180 -100 Q -180 -120 -160 -120 L 160 -120 Q 180 -120 180 -100 L 180 -80 L -180 -80 Z" fill="#6366F1"/>
+    <circle cx="0" cy="0" r="25" fill="#ffffff"/>
+    <text x="0" y="8" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#4F46E5" text-anchor="middle">$</text>
+  </g>
+</svg>

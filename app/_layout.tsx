@@ -1,23 +1,12 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import SplashScreenComponent from '@/components/SplashScreen';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { Text } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '../global.css';
-
-// Respect user system font size (accessibility) with a cap to avoid layout break
-// Text.defaultProps exists at runtime; RN types omit it, so we cast.
-const RNText = Text as typeof Text & {
-  defaultProps?: { allowFontScaling?: boolean; maxFontSizeMultiplier?: number };
-};
-if (RNText.defaultProps == null) RNText.defaultProps = {};
-RNText.defaultProps.allowFontScaling = true;
-RNText.defaultProps.maxFontSizeMultiplier = 1.5;
 
 import { migrateDbIfNeeded } from '@/db';
 import { StoreProvider } from '../providers/StoreProvider';
@@ -32,28 +21,25 @@ export const unstable_settings = {
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+// Respect user system font size (accessibility) with a cap to avoid layout break
+// Text.defaultProps exists at runtime; RN types omit it, so we cast.
+const RNText = Text as typeof Text & {
+  defaultProps?: { allowFontScaling?: boolean; maxFontSizeMultiplier?: number };
+};
+if (RNText.defaultProps == null) RNText.defaultProps = {};
+RNText.defaultProps.allowFontScaling = true;
+RNText.defaultProps.maxFontSizeMultiplier = 1.5;
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
+  const [showSplash, setShowSplash] = useState(true);
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const handleSplashFinish = () => {
+    setShowSplash(false);
+  };
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
+  // Show custom splash screen
+  if (showSplash) {
+    return <SplashScreenComponent onFinish={handleSplashFinish} />;
   }
 
   return <RootLayoutNav />;

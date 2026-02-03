@@ -49,17 +49,6 @@ export default function AccountCard({
           </Text>
         </View>
       </View>
-      <View className="flex-row justify-between mt-2 pt-2 border-t border-card-inner">
-        <Text className="text-muted text-[10px] uppercase font-bold">
-          Monthly Flow
-        </Text>
-        <Text
-          className={`text-sm font-bold ${monthlyFlow >= 0 ? 'text-income' : 'text-expense-negative'}`}
-        >
-          {monthlyFlow >= 0 ? '+' : ''}
-          {formatNaira(monthlyFlow)}
-        </Text>
-      </View>
     </GlassCard>
   );
 }

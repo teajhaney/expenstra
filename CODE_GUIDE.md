@@ -103,15 +103,13 @@ expense tracker/
 **Flow:** On focus → load summary + account balances for selected month → show three boxes.
 
 | UI                          | Code / data                                                                             |
-| --------------------------- | --------------------------------------------------------------------------------------- | --- | -------------------- |
+| --------------------------- | --------------------------------------------------------------------------------------- |
 | Month (e.g. "January 2026") | `MonthNavigator`; `currentDate` state; `navigateMonth`                                  |
 | Total Balance               | `BalanceCard`; amount = `totalGlobalBalance` (sum of all account balances)              |
 | Accounts (horizontal list)  | `useDashboardStore().accountBalances` → `AccountCard` per account                       |
 | Dividers between accounts   | Vertical `View` with `bg-slate-700` between cards in the list                           |
 | Scroll arrows (← →)         | Only when `accountBalances.length > 1`; `scrollAccounts(±1)` scrolls by ~one card width |
 | Single account = full width | `fullWidth={true}` on `AccountCard`, content width = `scrollViewWidth` from `onLayout`  |
-| Income / Expense summary    | Conditional rendering: only shows when `summary.income > 0                              |     | summary.expense > 0` |
-| Summary header              | "Summary" text label above Income/Expense cards                                         |
 
 **Data:**
 
